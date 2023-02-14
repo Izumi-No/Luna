@@ -37,75 +37,72 @@ const operators = [
 
 const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";", "->"];
 
-/*export class Lexer {
+export class Lexer {
   public readonly words: string[] = [];
   public readonly tokens: Token[] = [];
 
   constructor(input: string) {
-    this.words = Array.from(this.ReadWords(input));
+    this.words = Array.from(this.readWords(input));
     this.tokens = this.lex(this.words);
   }
 
-  private ReadWords(input: string): string[] {
-    let sla = /(?=([^'"]*['"][^'"]*['"])*[^'"]*$)(?<!\\)(\n)/gm;
-    let inputArray = input.split("");
+  private readWords(input: string) {
     const wordlist: string[] = [];
+    const inputArray = input.split("");
 
     for (let i = 0; i < inputArray.length; i++) {
-      let word = "";
       if (inputArray[i] === " ") continue;
-
-      if (inputArray[i] === '"') {
+      let word = "";
+      for (; i < inputArray.length && inputArray[i] !== " "; i++) {
         word += inputArray[i];
-        i++;
-        while (inputArray[i] !== '"') {
-          word += inputArray[i];
-          i++;
-        }
-        word += inputArray[i];
-        wordlist.push(word);
-      }
-      if (inputArray[i] === "'") {
-        word += inputArray[i];
-        i++;
-        while (inputArray[i] !== "'") {
-          word += inputArray[i];
-          i++;
-        }
-        word += inputArray[i];
-        wordlist.push(word);
       }
 
-      if (symbols.includes(inputArray[i])) {
-        wordlist.push(inputArray[i]);
+      const regex = new RegExp(/\S+/g);
+
+      word = word.replaceAll("\n", " ").trim();
+
+      const words = regex.exec(word);
+      if (words) {
+        for (const word of words) {
+          if (word) {
+            if (!isNaN(Number(word))) {
+              wordlist.push(word);
+              continue;
+            }
+
+            for (const symbol of symbols) {
+              if (word.includes(symbol)) {
+                if (word === symbol) {
+                  wordlist.push(word);
+                  continue;
+                }
+                if (word.startsWith(symbol) && word !== symbol) {
+                  wordlist.push(symbol);
+                  wordlist.push(word.slice(word.indexOf(symbol) + 1));
+                  continue;
+                }
+                if (word.endsWith(symbol) && word !== symbol) {
+                  wordlist.push(word.slice(0, word.indexOf(symbol)));
+                  wordlist.push(symbol);
+                  continue;
+                }
+                // separate words if they contain a symbol
+
+                const words = word.split(symbol);
+                for (const word of words) {
+                  if (word) wordlist.push(word);
+                  wordlist.push(symbol);
+                }
+              }
+            }
+          }
+        }
         continue;
       }
 
-      for (const symbol of symbols) {
-        if (inputArray[i] === symbol) {
-          wordlist.push(symbol);
-        }
-        if (word.includes(symbol) && word !== symbol) {
-          // verifica se o símbolo está no inicio da palavra
-          if (word.indexOf(symbol) === 0) {
-            wordlist.push(symbol);
-            word = word.replace(symbol, "");
-          }
-          // verifica se o símbolo está no fim da palavra
-          if (word.indexOf(symbol) === word.length - 1) {
-            wordlist.push(word.replace(symbol, ""));
-            wordlist.push(symbol);
-            word = "";
-          }
-          // verifica se o símbolo está no meio da palavra
-          if (word.indexOf(symbol) > 0) {
-            wordlist.push(word.slice(0, word.indexOf(symbol)));
-            wordlist.push(symbol);
-            word = word.slice(word.indexOf(symbol) + 1);
-          }
-        }
-      }
+      if (word) wordlist.push(word);
     }
+
     return wordlist;
   }
 
@@ -134,7 +131,7 @@ const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";", "->"];
   }
 }
 
-const a = new Lexer(`module test
+const input = `module test
 
 let a: string = "sla"
 
@@ -145,8 +142,13 @@ let a: string = "sla"
     name: string
     age: number
   }
+  
+  let person: Person = Person {
+    name: "John",
+    age: 20.5 
+  }
+  `;
 
-`);
+const a = new Lexer(input);
 
-console.log(a.words);
-*/
+console.log(a);
