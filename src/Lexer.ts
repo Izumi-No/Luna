@@ -35,7 +35,7 @@ const operators = [
   "<=",
 ];
 
-const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";", "->"];
+const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";"];
 
 export class Lexer {
   public readonly words: string[] = [];
@@ -46,64 +46,38 @@ export class Lexer {
     this.tokens = this.lex(this.words);
   }
 
-  private readWords(input: string) {
-    const wordlist: string[] = [];
-    const inputArray = input.split("");
+  private readWords(input: string): string[] {
+    const wordList: string[] = [];
+    let currentWord = "";
+    let inQuotes = false;
 
-    for (let i = 0; i < inputArray.length; i++) {
-      if (inputArray[i] === " ") continue;
-      let word = "";
-      for (; i < inputArray.length && inputArray[i] !== " "; i++) {
-        word += inputArray[i];
-      }
-
-      const regex = new RegExp(/\S+/g);
-
-      word = word.replaceAll("\n", " ").trim();
-
-      const words = regex.exec(word);
-      if (words) {
-        for (const word of words) {
-          if (word) {
-            if (!isNaN(Number(word))) {
-              wordlist.push(word);
-              continue;
-            }
-
-            for (const symbol of symbols) {
-              if (word.includes(symbol)) {
-                if (word === symbol) {
-                  wordlist.push(word);
-                  continue;
-                }
-                if (word.startsWith(symbol) && word !== symbol) {
-                  wordlist.push(symbol);
-                  wordlist.push(word.slice(word.indexOf(symbol) + 1));
-                  continue;
-                }
-                if (word.endsWith(symbol) && word !== symbol) {
-                  wordlist.push(word.slice(0, word.indexOf(symbol)));
-                  wordlist.push(symbol);
-                  continue;
-                }
-                // separate words if they contain a symbol
-
-                const words = word.split(symbol);
-                for (const word of words) {
-                  if (word) wordlist.push(word);
-                  wordlist.push(symbol);
-                }
-              }
-            }
-          }
+    for (const char of input) {
+      if (char === '"' || char === "'") {
+        inQuotes = !inQuotes;
+        currentWord += char;
+      } else if (inQuotes) {
+        currentWord += char;
+      } else if (/\s/.test(char)) {
+        if (currentWord) {
+          wordList.push(currentWord);
+          currentWord = "";
         }
-        continue;
+      } else if (symbols.includes(char)) {
+        if (currentWord) {
+          wordList.push(currentWord);
+          currentWord = "";
+        }
+        wordList.push(char);
+      } else {
+        currentWord += char;
       }
-
-      if (word) wordlist.push(word);
     }
 
-    return wordlist;
+    if (currentWord) {
+      wordList.push(currentWord);
+    }
+
+    return wordList;
   }
 
   lex(wordlist: string[]) {
@@ -136,7 +110,9 @@ const input = `module test
 let a: string = "sla"
 
   
-
+  fn add(a: number, b: number): number {
+    return a + b
+  }
 
   struct Person {
     name: string
