@@ -3,6 +3,7 @@ export type TokenType =
   | "operator"
   | "symbol"
   | "string"
+  | "number"
   | "identifier";
 
 export interface IToken {

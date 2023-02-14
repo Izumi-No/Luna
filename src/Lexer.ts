@@ -17,6 +17,7 @@ const keywords = [
   "fn",
   "struct",
   "interface",
+  "module",
 ];
 
 const operators = [
@@ -36,7 +37,7 @@ const operators = [
 
 const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";", "->"];
 
-export class Lexer {
+/*export class Lexer {
   public readonly words: string[] = [];
   public readonly tokens: Token[] = [];
 
@@ -46,62 +47,66 @@ export class Lexer {
   }
 
   private ReadWords(input: string): string[] {
-    const inputSliced = input.split("");
-    const wordList: string[] = [];
+    let sla = /(?=([^'"]*['"][^'"]*['"])*[^'"]*$)(?<!\\)(\n)/gm;
+    let inputArray = input.split("");
+    const wordlist: string[] = [];
 
-    for (let i = 0; i < inputSliced.length; i++) {
-      if (inputSliced[i] === " ") continue;
+    for (let i = 0; i < inputArray.length; i++) {
+      let word = "";
+      if (inputArray[i] === " ") continue;
 
-      if (inputSliced[i] === '"') {
-        let word = "";
+      if (inputArray[i] === '"') {
+        word += inputArray[i];
         i++;
-        while (inputSliced[i] !== '"') {
-          word += inputSliced[i];
+        while (inputArray[i] !== '"') {
+          word += inputArray[i];
           i++;
         }
-        wordList.push(`"${word}"`);
+        word += inputArray[i];
+        wordlist.push(word);
+      }
+      if (inputArray[i] === "'") {
+        word += inputArray[i];
+        i++;
+        while (inputArray[i] !== "'") {
+          word += inputArray[i];
+          i++;
+        }
+        word += inputArray[i];
+        wordlist.push(word);
+      }
+
+      if (symbols.includes(inputArray[i])) {
+        wordlist.push(inputArray[i]);
         continue;
       }
 
-      if (inputSliced[i] === "\n") continue;
-
-      let word = "";
-      for (; i < inputSliced.length; i++) {
-        if (inputSliced[i] === " ") break;
-        word += inputSliced[i];
-      }
-
       for (const symbol of symbols) {
+        if (inputArray[i] === symbol) {
+          wordlist.push(symbol);
+        }
         if (word.includes(symbol) && word !== symbol) {
-          if (word.slice(0, symbol.length) === symbol) {
-            // separate symbol from word if it's at the start
-            wordList.push(symbol);
-            word = word.slice(symbol.length);
-            word = word.replace("\n", "");
-            continue;
+          // verifica se o símbolo está no inicio da palavra
+          if (word.indexOf(symbol) === 0) {
+            wordlist.push(symbol);
+            word = word.replace(symbol, "");
           }
-          if (word.slice(-symbol.length) === symbol) {
-            // separate symbol from word if it's at the end
-            wordList.push(word.slice(0, -symbol.length));
-            word = symbol;
-            continue;
+          // verifica se o símbolo está no fim da palavra
+          if (word.indexOf(symbol) === word.length - 1) {
+            wordlist.push(word.replace(symbol, ""));
+            wordlist.push(symbol);
+            word = "";
           }
-          wordList.push(word.slice(0, word.indexOf(symbol)));
-          wordList.push(symbol);
-          word = word.slice(word.indexOf(symbol) + symbol.length);
-          word = word.replace("\n", "");
-          continue;
+          // verifica se o símbolo está no meio da palavra
+          if (word.indexOf(symbol) > 0) {
+            wordlist.push(word.slice(0, word.indexOf(symbol)));
+            wordlist.push(symbol);
+            word = word.slice(word.indexOf(symbol) + 1);
+          }
         }
       }
-      word = word.replace("\n", "");
-
-      if (word === "") continue;
-      if (word.includes("\n")) continue;
-
-      wordList.push(word);
     }
-
-    return wordList;
+    return wordlist;
   }
 
   lex(wordlist: string[]) {
@@ -118,6 +123,8 @@ export class Lexer {
         (word[0] === "'" && word[word.length - 1] == "'")
       ) {
         tokens.push({ type: "string", value: word });
+      } else if (!isNaN(Number(word))) {
+        tokens.push({ type: "number", value: word });
       } else {
         tokens.push({ type: "identifier", value: word });
       }
@@ -127,11 +134,11 @@ export class Lexer {
   }
 }
 
-const a = new Lexer(`let a: string = "sla"
+const a = new Lexer(`module test
 
-  fn main() {
-    return "hello world"
-  }
+let a: string = "sla"
+
+  
 
 
   struct Person {
@@ -141,4 +148,5 @@ const a = new Lexer(`let a: string = "sla"
 
 `);
 
-console.log(a.tokens);
+console.log(a.words);
+*/

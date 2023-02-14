@@ -1,10 +1,14 @@
 import { IToken as Token } from "./interfaces/IToken.ts";
+import { ASTNode } from "./interfaces/IAST.ts";
 
-interface AST {
-  type: string;
-  left?: AST;
-  right?: AST;
-  value: string;
+export function parse(tokens: Token[]): ASTNode {
+  let Program: ASTNode = {
+    type: "Program",
+    children: [],
+  };
+
+  for (const [_idx, token] of tokens.entries()) {
+  }
+
+  return Program;
 }
-
-function parse(tokens: Token[]): AST {}
