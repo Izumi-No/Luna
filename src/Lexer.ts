@@ -1,52 +1,9 @@
-/*
-lang input
-
-let a: string = "sla"
-*/
-
 import { IToken as Token } from "./interfaces/IToken.ts";
 
-const keywords = [
-  "let",
-  "const",
-  "if",
-  "else",
-  "elif",
-  "for",
-  "return",
-  "fn",
-  "struct",
-  "interface",
-  "module",
-];
-
-const operators = [
-  "+",
-  "-",
-  "*",
-  "/",
-  "%",
-  "=",
-  "==",
-  "!=",
-  ">",
-  "<",
-  ">=",
-  "<=",
-];
-
-const symbols = ["(", ")", "{", "}", "[", "]", ",", ".", ":", ";"];
+import { signTable } from "./signTable.ts";
 
 export class Lexer {
-  public readonly words: string[] = [];
-  public readonly tokens: Token[] = [];
-
-  constructor(input: string) {
-    this.words = Array.from(this.readWords(input));
-    this.tokens = this.lex(this.words);
-  }
-
-  private readWords(input: string): string[] {
+  static *generateLexems(input: string): Generator<string, string[]> {
     const wordList: string[] = [];
     let currentWord = "";
     let inQuotes = false;
@@ -60,14 +17,17 @@ export class Lexer {
       } else if (/\s/.test(char)) {
         if (currentWord) {
           wordList.push(currentWord);
+          yield currentWord;
           currentWord = "";
         }
-      } else if (symbols.includes(char)) {
+      } else if (signTable.symbols.includes(char)) {
         if (currentWord) {
           wordList.push(currentWord);
+          yield currentWord;
           currentWord = "";
         }
         wordList.push(char);
+        yield char;
       } else {
         currentWord += char;
       }
@@ -75,56 +35,69 @@ export class Lexer {
 
     if (currentWord) {
       wordList.push(currentWord);
+      yield currentWord;
     }
 
     return wordList;
   }
 
-  lex(wordlist: string[]) {
+  static *classifyLexems(lexemList: string[]): Generator<Token, Token[]> {
     const tokens: Token[] = [];
-    for (const word of wordlist) {
-      if (keywords.includes(word)) {
-        tokens.push({ type: "keyword", value: word });
-      } else if (operators.includes(word)) {
-        tokens.push({ type: "operator", value: word });
-      } else if (symbols.includes(word)) {
-        tokens.push({ type: "symbol", value: word });
+    for (const lexem of lexemList) {
+      if (signTable.keywords.includes(lexem)) {
+        tokens.push({ type: "keyword", value: lexem });
+        yield { type: "keyword", value: lexem };
+      } else if (signTable.operators.includes(lexem)) {
+        tokens.push({ type: "operator", value: lexem });
+        yield { type: "operator", value: lexem };
+      } else if (signTable.symbols.includes(lexem)) {
+        tokens.push({ type: "symbol", value: lexem });
+        yield { type: "symbol", value: lexem };
       } else if (
-        (word[0] === '"' && word[word.length - 1] == '"') ||
-        (word[0] === "'" && word[word.length - 1] == "'")
+        (lexem[0] === '"' && lexem[lexem.length - 1] == '"') ||
+        (lexem[0] === "'" && lexem[lexem.length - 1] == "'")
       ) {
-        tokens.push({ type: "string", value: word });
-      } else if (!isNaN(Number(word))) {
-        tokens.push({ type: "number", value: word });
+        tokens.push({ type: "string", value: lexem });
+        yield { type: "string", value: lexem };
+      } else if (!isNaN(Number(lexem))) {
+        tokens.push({ type: "number", value: lexem });
+        yield { type: "number", value: lexem };
       } else {
-        tokens.push({ type: "identifier", value: word });
+        tokens.push({ type: "identifier", value: lexem });
+        yield { type: "identifier", value: lexem };
       }
     }
 
     return tokens;
   }
+
+  static classifyLexem(lexem: string): Token {
+    if (signTable.keywords.includes(lexem)) {
+      return { type: "keyword", value: lexem };
+    } else if (signTable.operators.includes(lexem)) {
+      return { type: "operator", value: lexem };
+    } else if (signTable.symbols.includes(lexem)) {
+      return { type: "symbol", value: lexem };
+    } else if (
+      (lexem[0] === '"' && lexem[lexem.length - 1] == '"') ||
+      (lexem[0] === "'" && lexem[lexem.length - 1] == "'")
+    ) {
+      return { type: "string", value: lexem };
+    } else if (!isNaN(Number(lexem))) {
+      return { type: "number", value: lexem };
+    } else {
+      return { type: "identifier", value: lexem };
+    }
+  }
+
+  static *lex(input: string): Generator<Token, Token[]> {
+    const lexemGenerator = Lexer.generateLexems(input);
+    const tokens: Token[] = [];
+    for (const lexem of lexemGenerator) {
+      const token = Lexer.classifyLexem(lexem);
+      tokens.push(token);
+      yield token;
+    }
+    return tokens;
+  }
 }
-
-const input = `module test
-
-let a: string = "sla"
-
-  
-  fn add(a: number, b: number): number {
-    return a + b
-  }
-
-  struct Person {
-    name: string
-    age: number
-  }
-  
-  let person: Person = Person {
-    name: "John",
-    age: 20.5 
-  }
-  `;
-
-const a = new Lexer(input);
-
-console.log(a);
