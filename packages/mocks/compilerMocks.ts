@@ -1,4 +1,5 @@
-export const input = `module test
+export const input = `
+module test
 
 let a: string = "sla"
 
@@ -15,7 +16,11 @@ let a: string = "sla"
   let person: Person = Person {
     name: "John",
     age: 20.5 
-  }`;
+  }
+
+  fn () 
+
+  `;
 
 export const words = [
   "module",

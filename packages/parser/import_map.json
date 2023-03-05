@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "~/*": "./src/*",
+    "ffi/lexer/*": "./lexer/*"
+  }
+}

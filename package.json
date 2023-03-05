@@ -1,0 +1,27 @@
+{
+  "name": "luna",
+  "version": "1.0.0",
+  "description": "A language made in typescript that has low abstraction",
+  "main": "index.js",
+  "scripts": {
+    "lexer:build": "cd packages/lexer && deno_bindgen"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Izumi-No/Luna.git"
+  },
+  "keywords": [
+    "luna",
+    "language",
+    "typescript",
+    "low abstraction",
+    "llvm",
+    "compiler"
+  ],
+  "author": "Izumi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Izumi-No/Luna/issues"
+  },
+  "homepage": "https://github.com/Izumi-No/Luna#readme"
+}
