@@ -18,7 +18,7 @@ let a: string = "sla"
     age: 20.5 
   }
 
-  fn () 
+  fn ()
 
   `;
 
