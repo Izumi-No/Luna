@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "A language made in typescript that has low abstraction",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "lexer:build": "cd packages/lexer && deno_bindgen"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
   },
   "repository": {
     "type": "git",

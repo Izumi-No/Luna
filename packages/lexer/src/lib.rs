@@ -1,5 +1,6 @@
 use deno_bindgen::deno_bindgen;
 use logos::Logos;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -151,4 +152,63 @@ fn lex_span(input: &str) -> String {
 
     let json_result = json!(result);
     json_result.to_string()
+}
+
+#[derive(Serialize, Deserialize)]
+
+struct Token {
+    tokenType: String,
+    value: Option<String>,
+    line: i32,
+    range: [i32; 2],
+}
+
+#[deno_bindgen]
+
+fn lex_span_json(input: &str) -> String {
+    let mut lex = Tokens::lexer(input).spanned();
+    let mut result: Vec<Token> = Vec::new();
+    let mut line = 1;
+
+    let regex_for_parentesis = Regex::new(r#"^([^()]+)\(([^()]*)\)$"#).unwrap();
+    let regex_without_parentesis = Regex::new(r#"^([^()]+)$"#).unwrap();
+    let regex_for_inner_quotes = Regex::new(r#"^"([^()]+)"$"#).unwrap();
+
+    while let Some((token, range)) = lex.next() {
+        if let Tokens::Newline = token {
+            line += 1;
+            continue;
+        }
+
+        let token_type = format!("{:?}", token);
+        let value = match token {
+            Tokens::Integer(i) => Some(i.to_string()),
+            Tokens::Float(f) => Some(f.to_string()),
+            Tokens::Identifier(s) => Some(s.to_string()),
+            Tokens::String(s) => Some(s.to_string()),
+            _ => None,
+        };
+
+        let (token_type) = if let Some(captures) = regex_for_parentesis.captures(&token_type) {
+            let token_type = captures.get(1).unwrap().as_str();
+            let token_value = regex_for_inner_quotes
+                .captures(captures.get(2).unwrap().as_str())
+                .map(|m| m.get(1).unwrap().as_str().to_owned())
+                .unwrap_or_else(|| captures.get(2).unwrap().as_str().to_owned());
+            (token_type, Some(token_value))
+        } else if let Some(captures) = regex_without_parentesis.captures(&token_type) {
+            (captures.get(1).unwrap().as_str(), None)
+        } else {
+            continue;
+        };
+
+        result.push(Token {
+            tokenType: token_type.to_owned(),
+            value,
+            line,
+            range: [range.start as i32, range.end as i32],
+        });
+    }
+
+    json!(result).to_string()
 }

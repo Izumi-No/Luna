@@ -76,6 +76,7 @@ version = "0.1.0"
 dependencies = [
  "deno_bindgen",
  "logos",
+ "regex",
  "serde",
  "serde_json",
 ]
